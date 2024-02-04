@@ -69,7 +69,7 @@ class SongHandler(AbletonOSCHandler):
         ]
 
         #--------------------------------------------------------------------------------
-        # Callbacks for Songi: properties (read-only)
+        # Callbacks for Song: properties (read-only)
         #--------------------------------------------------------------------------------
         properties_r = [
             "can_redo",
@@ -84,6 +84,20 @@ class SongHandler(AbletonOSCHandler):
             self.osc_server.add_handler("/live/song/stop_listen/%s" % prop, partial(self._stop_listen, self.song, prop))
         for prop in properties_rw:
             self.osc_server.add_handler("/live/song/set/%s" % prop, partial(self._set_property, self.song, prop))
+
+        #--------------------------------------------------------------------------------
+        # Callbacks for Song: Sends properties
+        # --------------------------------------------------------------------------------
+
+        def song_get_send_names(params):
+            if len(params) == 0:
+                track_index_min, track_index_max = 0, len(self.song.return_tracks)
+            else:
+                track_index_min, track_index_max = params
+                if track_index_max == -1:
+                    track_index_max = len(self.song.return_tracks)
+            return tuple(self.song.return_tracks[index].name for index in range(track_index_min, track_index_max))
+        self.osc_server.add_handler("/live/song/get/send_names", song_get_send_names)
 
         #--------------------------------------------------------------------------------
         # Callbacks for Song: Track properties
